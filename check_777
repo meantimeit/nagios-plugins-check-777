@@ -18,8 +18,8 @@ executionDisabled() {
 
 # htaccessExistsInPath :: String -> String -> IO ()
 htaccessExistsInPath() {
-  local base_dir=$1
-  local cur_dir=$2
+  local base_dir=$(readlink -f $1)
+  local cur_dir=$(readlink -f $2)
   local htaccess=$cur_dir/.htaccess
 
   if [[ -f $htaccess ]]; then
@@ -34,8 +34,8 @@ htaccessExistsInPath() {
 
 # executionProtectionInPath :: String -> String -> IO ()
 executionProtectionInPath() {
-  local base_dir=$1
-  local cur_dir=$2
+  local base_dir=$(readlink -f $1)
+  local cur_dir=$(readlink -f $2)
   local htaccess=$cur_dir/.htaccess
 
   # If we aren't at the base dir, check if the file exists, if it exists
@@ -56,8 +56,8 @@ executionProtectionInPath() {
 
 # hasValidHtaccess :: String -> String -> IO String
 hasValidHtaccess() {
-  local base_dir=$1
-  local cur_dir=$2
+  local base_dir=$(readlink -f $1)
+  local cur_dir=$(readlink -f $2)
 
   if ! htaccessExistsInPath $base_dir $cur_dir; then
     echo "No .htaccess: $cur_dir"
