@@ -11,7 +11,7 @@ executionDisabled() {
   local engine_check=$(grep -i "php_flag engine off" $htaccess)
   local deny_check=$(grep -i "deny from all" $htaccess)
 
-  if [[ "$engine_check" == "" || "$deny_check" == "" ]]; then
+  if [[ "$engine_check" == "" && "$deny_check" == "" ]]; then
     return 1
   fi
 }
@@ -77,9 +77,8 @@ check777() {
 
   for writabledir in $writabledirs; do
     msg=$(hasValidHtaccess $base_dir $writabledir)
-    msg_ret=$?
 
-    if [[ $msg_ret -ne 0 ]]; then
+    if [[ $? -ne 0 ]]; then
       echo "$msg"
       msg_ret=1
     fi
