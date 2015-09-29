@@ -11,7 +11,7 @@ executionDisabled() {
   local engine_check=$(grep -i "php_flag engine off" $htaccess)
   local deny_check=$(grep -i "deny from all" $htaccess)
 
-  if [[ "$engine_check" == "" && "$deny_check" == "" ]]; then
+  if [[ "$engine_check" == "" || "$deny_check" == "" ]]; then
     return 1
   fi
 }
