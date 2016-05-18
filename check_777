@@ -27,7 +27,7 @@ htaccessExistsInPath() {
   elif [[ "$base_dir" == "$cur_dir" ]]; then
     return 1
   else
-    htaccessExistsInPath $base_dir $(dirname $cur_dir)
+    htaccessExistsInPath "$base_dir" "$(dirname $cur_dir)"
     return $?
   fi
 }
@@ -49,7 +49,7 @@ executionProtectionInPath() {
   # If all else fails, recurse to the parent directory and return the result
   # of running it against the parent
   else
-    executionProtectionInPath $base_dir $(dirname $cur_dir)
+    executionProtectionInPath "$base_dir" "$(dirname $cur_dir)"
     return $?
   fi
 }
