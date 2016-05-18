@@ -92,7 +92,8 @@ main=$(check777 $base_dir)
 main_ret=$?
 
 if [[ $main_ret -ne 0 ]]; then
-  echo "Found writable directories|$main"
+  echo "Found writable directories|"
+  echo "$main"
   exit $main_ret
 else
   echo "OK"
