@@ -18,29 +18,30 @@ executionDisabled() {
 
 # htaccessExistsInPath :: String -> String -> IO ()
 htaccessExistsInPath() {
-  local base_dir=$(readlink -f $1)
-  local cur_dir=$(readlink -f $2)
+  local base_dir=$(readlink -f "$1")
+  local cur_dir=$(readlink -f "$2")
   local htaccess=$cur_dir/.htaccess
 
-  if [[ -f $htaccess ]]; then
+  if [[ -f "$htaccess" ]]; then
     return 0
   elif [[ "$base_dir" == "$cur_dir" ]]; then
     return 1
   else
-    htaccessExistsInPath "$base_dir" "$(dirname $cur_dir)"
+    local parent_cur_dir=$(dirname "$cur_dir")
+    htaccessExistsInPath "$base_dir" "$parent_cur_dir"
     return $?
   fi
 }
 
 # executionProtectionInPath :: String -> String -> IO ()
 executionProtectionInPath() {
-  local base_dir=$(readlink -f $1)
-  local cur_dir=$(readlink -f $2)
+  local base_dir=$(readlink -f "$1")
+  local cur_dir=$(readlink -f "$2")
   local htaccess=$cur_dir/.htaccess
 
   # If we aren't at the base dir, check if the file exists, if it exists
   # we check for execution protection
-  if [[ -f $htaccess ]] && executionDisabled $htaccess; then
+  if [[ -f "$htaccess" ]] && executionDisabled "$htaccess"; then
     return 0
   # If we've hit the base dir, we've failed. The root folder of the test
   # shouldn't be used to protect from execution
@@ -49,20 +50,24 @@ executionProtectionInPath() {
   # If all else fails, recurse to the parent directory and return the result
   # of running it against the parent
   else
-    executionProtectionInPath "$base_dir" "$(dirname $cur_dir)"
+    local parent_cur_dir=$(dirname "$cur_dir")
+    executionProtectionInPath "$base_dir" "$parent_cur_dir"
     return $?
   fi
 }
 
 # hasValidHtaccess :: String -> String -> IO String
 hasValidHtaccess() {
-  local base_dir=$(readlink -f $1)
-  local cur_dir=$(readlink -f $2)
+  local base_dir=$(readlink -f "$1")
+  local cur_dir=$(readlink -f "$2")
 
-  if ! htaccessExistsInPath $base_dir $cur_dir; then
+  echo "base_dir $base_dir"
+  echo "cur_dir $cur_dir"
+
+  if ! htaccessExistsInPath "$base_dir" "$cur_dir"; then
     echo "No .htaccess: $cur_dir"
     return 1
-  elif ! executionProtectionInPath $base_dir $cur_dir; then
+  elif ! executionProtectionInPath "$base_dir" "$cur_dir"; then
     echo "No execution protection: $cur_dir"
     return 1
   fi
@@ -70,19 +75,22 @@ hasValidHtaccess() {
 
 # check777 :: String -> IO String
 check777() {
+OIFS="$IFS"
+IFS=$'\n'
   local base_dir=$1
-  local writabledirs="$(find $base_dir -perm 777 -type d)"
+  local writabledirs="$(find $base_dir -perm 777 -type d -print)"
   local msg_ret=0
   local msg=
 
   for writabledir in $writabledirs; do
-    msg=$(hasValidHtaccess $base_dir $writabledir)
+    msg=$(hasValidHtaccess "$base_dir" "$writabledir")
 
     if [[ $? -ne 0 ]]; then
       echo "$msg"
       msg_ret=1
     fi
   done
+IFS="$OIFS"
 
   return $msg_ret
 }
